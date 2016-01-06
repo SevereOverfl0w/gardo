@@ -7,3 +7,7 @@ commands:
     aliases: banish
     permission: gardo.ban
     usage: /<command> [player] [time]
+  lookup:
+    description: Lookup a player
+    permission: gardo.lookup
+    usage: /<command> [player]

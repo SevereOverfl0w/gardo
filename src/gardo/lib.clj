@@ -1,5 +1,6 @@
 (ns gardo.lib
-  (:require [clj-time.core :as t]))
+  (:require [clj-time.core :as t]
+            [clj-time.coerce :as t-coerce]))
 
 (comment
   ;Ban data looks like so:
@@ -12,7 +13,7 @@
 
 (defn- active-at?
   [at-time {:keys [until]}]
-  (t/before? at-time until))
+  (t/before? at-time (t-coerce/from-date until)))
 
 (defn ban-player
   [bans uuid until]
