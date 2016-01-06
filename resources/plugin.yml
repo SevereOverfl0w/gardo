@@ -1,0 +1,9 @@
+name: gardo
+main: gardo.BukkurePlugin
+version: 0.1.0
+commands:
+  ban:
+    description: Ban a player
+    aliases: banish
+    permission: gardo.ban
+    usage: /<command> [player] [time]
