@@ -26,6 +26,20 @@
         (swap! bans gardo/ban-player (.getUniqueId player) (t-coerce/to-date parsed-date))))
     true))
 
+(defn kick-player
+  [bans sender _ _ [player & reason]]
+  (let [player (util/get-prev-player player)
+        reason (apply str (interpose " " reason))]
+    (cond
+      (not player) (p/send-msg sender "No such player found.")
+      (not (.isOnline player)) (p/send-msg sender "Player is not online")
+      :else
+      (do
+        (.kickPlayer player reason)
+        (p/send-msg sender "Kicking %s" (.getName player))
+        (swap! bans gardo/kick-player (.getUniqueId player) reason)))
+    true))
+
 (defn lookup-player
   [bans sender _ _ [player]]
   (let [player (util/get-prev-player player)
@@ -38,8 +52,21 @@
       (p/send-msg sender "No punishments active for %s" (.getName player))))
   true)
 
+(defn history-player
+  [bans sender _ _ [player]]
+  (let [player (util/get-prev-player player)
+        punishments (get @bans (.getUniqueId player))]
+    (if (seq punishments)
+      (do
+        (p/send-msg sender "Punishments for %s:" (.getName player))
+        (doseq [foo punishments]
+          (p/send-msg sender "%s" foo)))
+      (p/send-msg sender "No punishments for %s" (.getName player)))
+    true))
 
 (defn register
   [plugin {:keys [bans]}]
   (cmd/register-command plugin "ban" (partial ban-player bans) :player :str)
-  (cmd/register-command plugin "lookup" (partial lookup-player bans) :player))
+  (cmd/register-command plugin "kick" (partial kick-player bans) :player :str :str)
+  (cmd/register-command plugin "lookup" (partial lookup-player bans) :player)
+  (cmd/register-command plugin "history" (partial history-player bans) :player))
