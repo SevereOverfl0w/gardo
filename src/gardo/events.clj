@@ -1,16 +1,23 @@
 (ns gardo.events
-  (:require [bukkure.events :as ev]))
+  (:require [bukkure.events :as ev]
+            [gardo.lib :as gardo])
+  (:import [org.bukkit.event.player PlayerLoginEvent$Result]))
 
-(defn player-join-event
-  [ev])
+(defn player-login-event
+  [bans ev]
+  (let [state (gardo/player-state @bans (.. ev getPlayer getUniqueId))]
+    (when (seq state)
+      (.disallow ev (PlayerLoginEvent$Result/KICK_BANNED)
+                    (or (-> state first :reason) "You're banned")))
+    true))
 
 (defn player-chat-event
-  [ev])
+  [bans ev])
 
-(defn events []
-  [(ev/event "player.player-join" #'player-join-event)
-   (ev/event "player.player-chat" #'player-chat-event)])
+(defn events [bans]
+  [(ev/event "player.player-login" (partial player-login-event bans))
+   (ev/event "player.player-chat" (partial player-chat-event bans))])
 
 (defn register
-  [plugin state]
-  (ev/register-eventlist plugin (events)))
+  [plugin {:keys [bans]}]
+  (ev/register-eventlist plugin (events bans)))
